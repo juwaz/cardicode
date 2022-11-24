@@ -3,13 +3,13 @@ install:
 		pip install -r requirements.txt
 
 test:
-	python -m pytest -vv test_hello.py
+	python -m pytest -vv test_*.py
 
 format:
 	black *.py
 
 
 lint:
-	pylint --disable=R,C hello.py
+	touch __init__.py; pylint --rcfile=.pylintrc `pwd`; trap 'rm -f __init__.py' EXIT
 
 all: install lint test
