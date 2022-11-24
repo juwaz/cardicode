@@ -1,6 +1,6 @@
-![Python application test with Github Actions](https://github.com/noahgift/github-actions-pytest/workflows/Python%20application%20test%20with%20Github%20Actions/badge.svg)
+# Katdog
 
-# Github Actions pytest
-Example Github Actions Project designed to show how a hello version of Github Actions testing Python code.
+Testing python in the 100 days of code and katakana theme.
 
-*Part of Duke Coursera Course:  Cloud Computing for Data*
+The name is a reminder not to expect optimized or professional quality but
+rather something akin to _cardio_.
