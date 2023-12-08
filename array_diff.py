@@ -1,8 +1,24 @@
-from typing import List
+from typing import List, Union
 
 
-def array_diff(arg1: List[str | int], arg2=List[str | int]) -> List[str | int]:
+def array_diff(
+    arg1: List[Union[str, int]], arg2: List[Union[str, int]]
+) -> List[Union[str, int]]:
     """
-    using builtin set.difference and list to return the desired type
+    Returns a list of the elements from arg1 that are not in arg2.
+
+    >>> array_diff([1, 2, 3], [2, 4])
+    [1, 3]
+    >>> array_diff(["a", "b", "c"], ["b", "d"])
+    ['a', 'c']
+    >>> array_diff([1, "a", 3], [None, 4])
+    Traceback (most recent call last):
+    ValueError: Invalid element: None
     """
-    return list(set(arg1).difference(arg2))
+    # Validate the arguments
+    for arg in (arg1, arg2):
+        for elem in arg:
+            if not isinstance(elem, (str, int)):
+                raise ValueError(f"Invalid element: {elem}")
+
+    return [elem for elem in arg1 if elem not in arg2]

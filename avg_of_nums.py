@@ -1,20 +1,22 @@
-from typing import List
+from typing import List, Union, Optional
 
 
-def avg_range(k: List[int]) -> List[int | float]:
+def avg_range(k: List[Optional[int]]) -> List[Union[int, float]]:
     """
-    start with a typeerror catch of bad input
-    use an index aware wrap
-    for each index add it's +1 neighbor and divide the result by 2
+    Returns a list of the average of each pair of adjacent elements in k.
+
+    >>> avg_range([1, 2, 3, 4])
+    [1.5, 2.5, 3.5]
+    >>> avg_range([None, 2, 3, 4])
+    []
+    >>> avg_range([1])
+    []
     """
-    try:
-        if None in k or len(k) < 2:
-            raise TypeError
-    except TypeError:
+    # Check for invalid input
+    if None in k or len(k) < 2:
         return []
 
-    k_i = {i: n for i, n in enumerate(k)}
-
-    h = list(map(lambda i: (k[i] + k[i + 1]) / 2, list(k_i.keys())[:-1]))
+    # Use list comprehension instead of map and lambda
+    h = [(k[i] + k[i + 1]) / 2 for i in range(len(k) - 1)]
 
     return h
