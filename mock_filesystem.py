@@ -47,17 +47,17 @@ class FileSystem:
 
     def ls(self):
         """
-        List all files and directories in the current directory.
+        List all files and directories in the current directory using the cursor.
 
         >>> fs = FileSystem()
-        >>> fs.ls()
+        >>> fs.run_command('ls')
         []
-        >>> fs.mkdir('test')
-        >>> 'test' in fs.ls()
-        True
-        >>> fs.touch('file.txt')
-        >>> 'file.txt' in fs.ls()
-        True
+        >>> fs.run_command('mkdir test')
+        >>> fs.run_command('ls')
+        ['test']
+        >>> fs.run_command('touch file.txt')
+        >>> fs.run_command('ls')
+        ['test', 'file.txt']
         """
         if self.current_directory.children:
             return self.current_directory.children.list_names()
@@ -65,14 +65,12 @@ class FileSystem:
 
     def mkdir(self, name):
         """
-        Create a directory with the specified name in the current directory.
+        Create a directory with the specified name in the current directory using the cursor.
 
         >>> fs = FileSystem()
-        >>> fs.mkdir('mydir')
-        >>> fs.ls()
+        >>> fs.run_command('mkdir mydir')
+        >>> fs.run_command('ls')
         ['mydir']
-        >>> fs.current_directory.children.head.is_directory
-        True
         """
         if not self.current_directory.children:
             self.current_directory.children = LinkedList()
@@ -83,22 +81,30 @@ class FileSystem:
 
     def cd(self, directory_name):
         """
-        Change the current directory to the specified directory.
+        Change the current directory to the specified directory or print error.
 
         >>> fs = FileSystem()
         >>> fs.mkdir('mydir')
-        >>> fs.cd('mydir')
-        >>> fs.current_directory.name
-        'mydir'
-        >>> fs.cd('..')
-        >>> fs.current_directory.name
-        '/'
-        >>> fs.cd('..')  # Should not move above root
-        >>> fs.current_directory.name
-        '/'
+        >>> fs.run_command('cd mydir')
+        >>> fs.run_command('pwd')
+        /mydir
+        >>> fs.run_command('mkdir subdir')
+        >>> fs.run_command('cd subdir')
+        >>> fs.run_command('pwd')
+        /mydir/subdir
+        >>> fs.run_command('cd ..')
+        >>> fs.run_command('cd ..')
+        >>> fs.run_command('pwd')
+        /
+        >>> fs.run_command('cd non_existing_dir')
+        cd: no such file or directory: "non_existing_dir"
+        >>> fs.run_command('touch exists_but_not_dir.txt')
+        >>> fs.run_command('cd exists_but_not_dir.txt')
+        cd: not a directory: "exists_but_not_dir.txt"
         """
+
         if directory_name == "..":
-            if self.current_directory.parent:  # Prevent going above root
+            if self.current_directory.parent:
                 self.current_directory = self.current_directory.parent
         else:
             dir_node = (
@@ -106,19 +112,21 @@ class FileSystem:
                 if self.current_directory.children
                 else None
             )
-            if dir_node and dir_node.is_directory:
-                self.current_directory = dir_node
+            if not dir_node:
+                return f'cd: no such file or directory: "{directory_name}"'
+            elif not dir_node.is_directory:
+                return f'cd: not a directory: "{directory_name}"'
+
+            self.current_directory = dir_node
 
     def touch(self, file_name):
         """
         Create a file with the specified name in the current directory.
 
         >>> fs = FileSystem()
-        >>> fs.touch('file.txt')
-        >>> fs.ls()
+        >>> fs.run_command('touch file.txt')
+        >>> fs.run_command('ls')
         ['file.txt']
-        >>>
-        >>>
         """
         if not self.current_directory.children:
             self.current_directory.children = LinkedList()
@@ -127,8 +135,55 @@ class FileSystem:
                 Node(file_name, False, parent=self.current_directory)
             )
 
+    def print_cwd(self):
+        path = []
+        current = self.current_directory
+        while current:
+            path.append(current.name)
+            current = current.parent
+        path.pop()  # remove the empty string
+        if path:
+            pretty_path = "".join(f"/{path}" for path in reversed(path))
+            print(pretty_path)
+        else:
+            print("/")
+
+    def run_command(self, command_input):
+        parts = command_input.strip().split(" ")
+        command = parts[0]
+        arg = parts[1] if len(parts) > 1 else None
+
+        if command == "ls":
+            print(self.ls())
+        elif command == "mkdir" and arg:
+            self.mkdir(arg)
+        elif command == "cd" and arg:
+            response = self.cd(arg)
+            if response:
+                print(response)
+        elif command == "touch" and arg:
+            self.touch(arg)
+        elif command == "pwd":
+            self.print_cwd()
+        else:
+            print(f"Command '{command}' not recognized or missing arguments.")
+
+
+def main():
+    fs = FileSystem()
+    fs.print_cwd()
+
+    while True:
+        try:
+            command_input = input("> ")
+            fs.run_command(command_input)
+        except KeyboardInterrupt:
+            print("\nExiting.")
+            break
+
 
 if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
+    main()
